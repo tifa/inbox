@@ -1,20 +1,24 @@
 include Make.defs
 include .env
 
-.PHONY: venv
-venv: venv/touchfile
+.git/hooks/pre-commit: venv
+	$(ACTIVATE) pre-commit install
+	@touch $@
 
+venv: venv/touchfile
 venv/touchfile: requirements.txt
 	test -d venv || virtualenv venv
-	. venv/bin/activate && pip install -Ur requirements.txt
-	touch venv/touchfile
+	$(ACTIVATE) pip install -Ur requirements.txt
+	@touch $@
+
+setup: venv .git/hooks/pre-commit
 
 .PHONY: help
 help: Makefile  # Print this message
 	$(call usage)
 
 .PHONY: build
-build:  # Build the Docker image
+build: setup  # Build the Docker image
 	docker compose build prod
 
 .PHONY: dev
@@ -24,8 +28,8 @@ dev:  # Enter dev mode
 	docker compose -v run --rm dev
 
 .PHONY: docs
-docs: venv  # Open docs
-	. venv/bin/activate; cd docs && make html && open _build/html/index.html
+docs:  # Open docs
+	$(ACTIVATE) cd docs && make html && open _build/html/index.html
 
 .PHONY: restart
 restart: stop start  # Restart the service

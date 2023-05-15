@@ -7,6 +7,8 @@ FORMAT_BOLD_YELLOW = \e[1;$(FORMAT_YELLOW)m
 FORMAT_END = \e[0m
 FORMAT_UNDERLINE = \e[4m
 
+ACTIVATE = . venv/bin/activate;
+
 define usage
 @printf "Usage: make target\n\n"
 @printf "$(FORMAT_UNDERLINE)target$(FORMAT_END):\n"
