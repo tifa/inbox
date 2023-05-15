@@ -20,7 +20,7 @@ extensions = [
 ]
 
 templates_path = ['_templates']
-exclude_patterns = ['_build', 'Th umbs.db', '.DS_Store']
+exclude_patterns = ['_build']
 
 
 
