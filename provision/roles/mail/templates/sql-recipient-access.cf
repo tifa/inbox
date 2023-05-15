@@ -1,0 +1,8 @@
+dbpath = {{ sqlite_db_path }}
+query = SELECT COALESCE(
+            (SELECT 'REJECT'
+             FROM reject_recipients
+             JOIN domains ON reject_recipients.domain_id=domains.id
+             WHERE (reject_recipients.username || '@' || domains.name)=?),
+            'OK'
+        )

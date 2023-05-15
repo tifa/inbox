@@ -1,0 +1,4 @@
+driver = sqlite
+connect = {{ sqlite_db_path }}
+default_pass_scheme = PLAIN-MD5
+password_query = SELECT * FROM (SELECT '%u' AS user, users.password FROM users JOIN domains ON users.domain_id = domains.id WHERE users.username IS NULL AND domains.name = (SELECT substr('%u', instr('%u', '@')+1)) UNION SELECT users.username || '@' || domains.name AS user, users.password FROM users JOIN domains ON users.domain_id = domains.id WHERE users.username || '@' || domains.name = '%u') AS TMP LIMIT 0,1;

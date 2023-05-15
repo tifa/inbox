@@ -1,0 +1,81 @@
+
+---
+- name: create tables
+  shell: "sqlite3 {{ sqlite_db_path }} < roles/mail/files/schema.sql"
+
+- name: set postfix main configs
+  command: postconf -e "{{ item.key }} = {{ item.value }}"
+  with_items:
+    - { key: "myhostname", value: "{{ mailhost }}" }
+    - { key: "mydomain", value: "{{ mailhost }}" }
+
+- name: set dev postfix main configs - certs
+  command: postconf -e "{{ item.key }} = {{ item.value }}"
+  with_items:
+    - { key: "smtp_tls_cert_file", value: "/etc/ssl/private/ssl-cert-snakeoil.pem" }
+    - { key: "smtpd_tls_cert_file", value: "/etc/ssl/private/ssl-cert-snakeoil.pem" }
+    - { key: "smtpd_tls_key_file", value: "/etc/ssl/private/ssl-cert-snakeoil.key" }
+    - { key: "smtp_tls_key_file", value: "/etc/ssl/private/ssl-cert-snakeoil.key" }
+  when:
+    - mailhost == "localhost"
+
+- name: set prod postfix main configs - certs
+  command: postconf -e "{{ item.key }} = {{ item.value }}"
+  with_items:
+    - { key: "smtp_tls_cert_file", value: "/etc/letsencrypt/live/{{ mailhost }}/fullchain.pem" }
+    - { key: "smtpd_tls_cert_file", value: "/etc/letsencrypt/live/{{ mailhost }}/fullchain.pem" }
+    - { key: "smtpd_tls_key_file", value: "/etc/letsencrypt/live/{{ mailhost }}/privkey.pem" }
+    - { key: "smtp_tls_key_file", value: "/etc/letsencrypt/live/{{ mailhost }}/privkey.pem" }
+  when:
+    - mailhost != "localhost"
+
+- name: copy dovecot sql conf file
+  template:
+    src: ../templates/dovecot-sql.conf.ext
+    dest: /etc/dovecot/dovecot-sql.conf.ext
+    backup: yes
+
+- name: opendkim settings
+  lineinfile:
+    path: "/etc/opendkim.conf"
+    regexp: '^\s*#?\s*{{ item.key }}\s+'
+    line: "{{ item.key }} {{ item.value }}"
+    backup: yes
+  with_items:
+    - { key: "ReportAddress", value: "{{ admin_email }}"}
+
+- name: check if opendkim key exists
+  stat:
+    path: "/etc/dkimkeys/dkim.key"
+  register: opendkimkey
+
+- name: create opendkim key
+  command: "opendkim-genkey -D /etc/dkimkeys/ -d {{ mailhost }} -s mail"
+  args:
+    creates: "/etc/dkimkeys/dkim.key"
+  when: not opendkimkey.stat.exists
+
+- name: "set up opendkim for {{ mailhost }}"
+  include_tasks: domain.yml
+  vars:
+    hostname: "{{ mailhost }}"
+
+- name: restart postfix
+  service:
+    name: postfix
+    state: restarted
+
+- name: restart dovecot
+  service:
+    name: dovecot
+    state: restarted
+
+- name: start fail2ban  # Needed for the first time
+  service:
+    name: fail2ban
+    state: started
+
+- name: restart fail2ban
+  service:
+    name: fail2ban
+    state: restarted

@@ -1,0 +1,11 @@
+dbpath = {{ sqlite_db_path }}
+query = SELECT COALESCE(
+        (SELECT 'REJECT'
+         FROM reject_senders
+         WHERE reject_senders.username || '@' || reject_senders.username='%s'
+            OR (reject_senders.username IS NULL
+                AND reject_senders.username=substr('%s', instr('%s', '@')+1)
+            )
+        ),
+        'OK'
+        );

@@ -1,0 +1,102 @@
+---
+- name: decide whether to create a new cert
+  stat:
+    path: '/etc/opendkim/keys/{{ hostname }}'
+  register: opendkim_exists
+
+- block:
+  - name: set current date
+    set_fact:
+      current_date: '{{ ansible_date_time.date }}'
+
+  - name: comment out default keytable setting
+    lineinfile:
+      path: '/etc/opendkim/KeyTable'
+      regexp: '_domainkey.{{ hostname }} {{ hostname }}'
+      state: absent
+      backup: yes
+
+  - name: comment out default signingtable setting
+    lineinfile:
+      path: '/etc/opendkim/SigningTable'
+      regexp: '\*@{{ hostname }}'
+      state: absent
+      backup: yes
+
+  - name: delete old trustedhosts entry
+    lineinfile:
+      path: '/etc/opendkim/TrustedHosts'
+      regexp: '\*.{{ hostname }}'
+      state: absent
+      backup: yes
+
+  - name: add trustedhosts entry
+    lineinfile:
+      path: '/etc/opendkim/TrustedHosts'
+      line: '*.{{ hostname }}'
+      create: yes
+      backup: yes
+
+  - name: add keytable entry
+    lineinfile:
+      path: '/etc/opendkim/KeyTable'
+      line: '{{ current_date }}._domainkey.{{ hostname }} {{ hostname }}:{{ current_date }}:/etc/opendkim/keys/{{ hostname }}/{{ current_date }}.private'
+      create: yes
+      backup: yes
+
+  - name: add signingtable entry
+    lineinfile:
+      path: '/etc/opendkim/SigningTable'
+      line: '*@{{ hostname }} {{ current_date }}._domainkey.{{ hostname }}'
+      create: yes
+      backup: yes
+
+  - name: create folder for private/public keypair
+    file:
+      path: '/etc/opendkim/keys/{{ hostname }}'
+      owner: opendkim
+      group: opendkim
+      state: directory
+
+  - name: create keys
+    shell: 'opendkim-genkey -b 2048 -d {{ hostname }} -D /etc/opendkim/keys/{{ hostname }} -s {{ current_date }} -v'
+
+  - name: make opendkim the owner of the keys
+    file:
+      path: /etc/opendkim/keys/
+      recurse: yes
+      owner: opendkim
+      group: opendkim
+
+  - name: get TXT record
+    shell: 'cat /etc/opendkim/keys/{{ hostname }}/{{ current_date }}.txt'
+    register: opendkim_key
+
+  - name: 'add TXT record for {{ hostname }}'
+    pause:
+      prompt: '{{ opendkim_key.stdout }}'
+
+  - name: add postfix to opendkim group
+    user:
+      name: postfix
+      groups: opendkim
+      append: yes
+
+  - name: restart opendkim
+    service:
+      name: opendkim
+      state: restarted
+
+  when: not opendkim_exists.stat.exists
+
+- block:
+  - name: 'check if {{ hostname }} has a txt record'
+    shell: 'dig -t txt +short {{ hostname }}'
+    register: txt_record
+
+  - name: 'add TXT record for {{ hostname }}'
+    pause:
+      prompt: '{{ spf_txt }}'
+    when: txt_record.stdout[1:-1] != spf_txt
+
+  when: hostname != 'localhost'

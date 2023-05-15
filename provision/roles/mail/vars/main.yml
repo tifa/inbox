@@ -1,0 +1,3 @@
+---
+spf_txt: v=spf1 mx ~all
+sqlite_db_path: /virtualmail/data/app.db

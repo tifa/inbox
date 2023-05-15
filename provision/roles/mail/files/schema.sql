@@ -1,0 +1,30 @@
+CREATE TABLE IF NOT EXISTS domains (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name VARCHAR(50) NOT NULL UNIQUE,
+  description TEXT NULL
+);
+
+CREATE TABLE IF NOT EXISTS reject_recipients (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  username VARCHAR(50) NOT NULL,
+  domain_id INTEGER NOT NULL,
+  description TEXT NULL
+);
+
+CREATE TABLE IF NOT EXISTS reject_senders (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  username VARCHAR(50),
+  domain_name VARCHAR(50) NOT NULL,
+  description TEXT NULL,
+  UNIQUE(username, domain_name)
+);
+
+CREATE TABLE IF NOT EXISTS users (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  username VARCHAR(50) DEFAULT NULL,
+  domain_id INTEGER NOT NULL,
+  password VARCHAR(255) NOT NULL,
+  forward_to VARCHAR(255) DEFAULT NULL,
+  description TEXT NULL,
+  UNIQUE(username, domain_id)
+);

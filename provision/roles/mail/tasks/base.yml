@@ -1,0 +1,200 @@
+
+---
+- name: remove other rwx permissions for postfix
+  file:
+    path: /etc/postfix
+    state: directory
+    mode: o-rwx
+    recurse: yes
+
+- name: add policyd-spf
+  blockinfile:
+    path: /etc/postfix/master.cf
+    block: |
+      policyd-spf  unix  -       n       n       -       0       spawn
+          user=policyd-spf argv=/usr/libexec/postfix/policyd-spf
+    backup: yes
+
+- name: copy postfix config files
+  template:
+    backup: yes
+    dest: /etc/postfix/
+    src: "../templates/{{ item }}"
+    owner: root
+    group: postfix
+  with_items:
+    - sql-virtual-alias-maps.cf
+    - sql-virtual-domains.cf
+    - sql-virtual-email2email.cf
+    - sql-virtual-mailbox-maps.cf
+    - sql-recipient-access.cf
+    - sql-sender-access.cf
+
+- name: set postfix main configs
+  command: postconf -e "{{ item.key }} = {{ item.value }}"
+  with_items:
+    - { key: "disable_vrfy_command", value: "yes" }
+    - { key: "myorigin", value: "$mydomain" }
+    - { key: "inet_interfaces", value: "all" }
+    - { key: "smtpd_sasl_local_domain", value: "$mydomain" }
+    - { key: "html_directory", value: "no" }
+    - { key: "home_mailbox", value: "mail/" }
+    - { key: "smtpd_sasl_type", value: "dovecot" }
+    - { key: "smtpd_sasl_path", value: "private/auth" }
+    - { key: "smtpd_sasl_auth_enable", value: "yes" }
+    - { key: "broken_sasl_auth_clients", value: "yes" }
+    - { key: "smtpd_sender_access", value: "sqlite:/etc/postfix/sql-sender-access.cf" }
+    - { key: "smtpd_recipient_access", value: "sqlite:/etc/postfix/sql-recipient-access.cf" }
+    - { key: "smtpd_recipient_restrictions", value: "check_recipient_access $smtpd_recipient_access, permit_mynetworks, permit_sasl_authenticated, check_policy_service unix:private/policyd-spf" }
+    - { key: "smtpd_sender_restrictions", value: "check_sender_access $smtpd_sender_access" }
+    - { key: "smtpd_sasl_authenticated_header", value: "yes" }
+    - { key: "smtpd_use_tls", value: "yes" }
+    - { key: "smtp_use_tls", value: "yes" }
+    - { key: "smtp_tls_security_level", value: "may" }
+    - { key: "smtpd_tls_security_level", value: "may" }
+    - { key: "smtpd_tls_auth_only", value: "yes" }
+    - { key: "smtp_tls_note_starttls_offer", value: "yes" }
+    - { key: "milter_default_action", value: "accept" }
+    - { key: "milter_protocol", value: "6" }
+    - { key: "smtpd_milters", value: "inet:127.0.0.1:8891" }
+    - { key: "non_smtpd_milters", value: "$smtpd_milters" }
+    - { key: "virtual_transport", value: "lmtp:unix:private/dovecot-lmtp" }
+    - { key: "virtual_alias_maps", value: "sqlite:/etc/postfix/sql-virtual-alias-maps.cf,sqlite:/etc/postfix/sql-virtual-email2email.cf" }
+    - { key: "virtual_mailbox_domains", value: "sqlite:/etc/postfix/sql-virtual-domains.cf" }
+    - { key: "virtual_mailbox_maps", value: "sqlite:/etc/postfix/sql-virtual-mailbox-maps.cf" }
+    - { key: "virtual_mailbox_base", value: "/home/vmail" }
+    - { key: "virtual_uid_maps", value: "static:5000" }
+    - { key: "virtual_gid_maps", value: "static:5000" }
+    - { key: "smtpd_tls_loglevel", value: "0" }
+
+- name: set postfix master config service
+  command: "postconf -M {{ item }}"
+  with_items:
+    - "submission/inet=\"submission inet n       -       y      -       -       smtpd\""
+    - "smtps/inet=\"smtps     inet  n       -       -       -       -       smtpd\""
+
+- name: set postfix master config options
+  command: "postconf -P \"{{ item.service }}/{{ item.option }}\""
+  with_items:
+    - { service: "submission/inet", option: "syslog_name=postfix/submission" }
+    - { service: "submission/inet", option: "smtpd_tls_security_level=encrypt" }
+    - { service: "submission/inet", option: "smtpd_sasl_auth_enable=yes" }
+    - { service: "submission/inet", option: "smtpd_sasl_type=dovecot" }
+    - { service: "submission/inet", option: "smtpd_sasl_path=private/auth" }
+    - { service: "submission/inet", option: "smtpd_client_restrictions=permit_sasl_authenticated,reject" }
+    - { service: "submission/inet", option: "milter_macro_daemon_name=ORIGINATING" }
+    - { service: "smtps/inet", option: "syslog_name=postfix/smtps" }
+    - { service: "smtps/inet", option: "smtpd_tls_wrappermode=yes" }
+    - { service: "smtps/inet", option: "smtpd_sasl_auth_enable=yes" }
+    - { service: "smtps/inet", option: "smtpd_sasl_type=dovecot" }
+    - { service: "smtps/inet", option: "smtpd_sasl_path=private/auth" }
+    - { service: "smtps/inet", option: "smtpd_client_restrictions=permit_sasl_authenticated,reject" }
+    - { service: "smtps/inet", option: "milter_macro_daemon_name=ORIGINATING" }
+
+- name: change dovecot config files
+  lineinfile:
+    path: "/etc/dovecot/conf.d/{{ item.file }}.conf"
+    regexp: '^\s*#?\s*{{ item.key }}\s*='
+    line: "{{ item.key }} = {{ item.value }}"
+    backup: yes
+  with_items:
+    - { file: "10-auth", key: "disable_plaintext_auth", value: "yes" }
+    - { file: "10-auth", key: "auth_mechanisms", value: "plain login" }
+    - { file: "10-ssl", key: "ssl", value: "required" }
+    - { file: "10-logging", key: "auth_verbose", value: "yes" }
+    - { file: "10-logging", key: "auth_verbose_passwords", value: "yes" }
+    - { file: "10-logging", key: "auth_debug", value: "yes" }
+    - { file: "10-logging", key: "auth_debug_passwords", value: "yes" }
+    - { file: "10-logging", key: "mail_debug", value: "yes"}
+
+- name: change dovecot auth config file includes
+  lineinfile:
+    path: /etc/dovecot/conf.d/10-auth.conf
+    regexp: '^\s*#?\s*!include\s+{{ item }}'
+    line: "!include {{ item }}"
+    backup: yes
+  with_items:
+    - "auth-system.conf.ext"
+    - "auth-sql.conf.ext"
+
+- name: copy dovecot auth sql conf file
+  copy:
+    src: "roles/mail/files/{{ item }}"
+    dest: "/etc/dovecot/conf.d/{{ item }}"
+    backup: yes
+  with_items:
+    - "auth-sql.conf.ext"
+    - "10-master.conf"
+
+- name: create mail directory
+  file:
+    path: /root/mail
+    state: directory
+
+- name: create vmail group
+  group:
+    name: vmail
+    state: present
+    gid: 5000
+
+- name: create vmail user
+  user:
+    name: vmail
+    uid: 5000
+    shell: /bin/bash
+    group: vmail
+    home: /var/mail
+
+- name: change dovecot folder permissions
+  file:
+    path: /etc/dovecot
+    mode: o-rwx
+    group: dovecot
+    owner: vmail
+    state: directory
+    recurse: yes
+
+- name: opendkim settings
+  lineinfile:
+    path: "/etc/opendkim.conf"
+    regexp: '^\s*#?\s*{{ item.key }}\s+'
+    line: "{{ item.key }} {{ item.value }}"
+    backup: yes
+  with_items:
+    - { key: "ExternalIgnoreList", value: "refile:/etc/opendkim/TrustedHosts" }
+    - { key: "InternalHosts", value: "refile:/etc/opendkim/TrustedHosts" }
+    - { key: "KeyFile", value: "/etc/dkimkeys/dkim.key" }
+    - { key: "KeyTable", value: "refile:/etc/opendkim/KeyTable" }
+    - { key: "LogWhy", value: "yes" }
+    - { key: "Mode", value: "sv" }
+    - { key: "SendReports", value: "yes" }
+    - { key: "SigningTable", value: "refile:/etc/opendkim/SigningTable" }
+
+- name: disable opendkim keyfile
+  lineinfile:
+    path: "/etc/opendkim.conf"
+    regexp: '^\s*#?\s*{{ item.key }}\s+'
+    line: "# {{ item.key }} {{ item.value }}"
+    backup: yes
+  with_items:
+    - { key: "KeyFile", value: "/etc/dkimkeys/dkim.key" }
+
+- name: set permissions of vmail's home folder
+  file:
+    path: /var/mail
+    group: vmail
+    owner: vmail
+    recurse: yes
+    state: directory
+
+- name: fail2ban filter
+  copy:
+    src: "roles/mail/files/postfix-sasl.conf"
+    dest: "/etc/fail2ban/filter.d/postfix-sasl.conf"
+    backup: yes
+
+- name: fail2ban enable
+  copy:
+    src: "roles/mail/files/sasl.conf"
+    dest: "/etc/fail2ban/jail.d/sasl.conf"
+    backup: yes

@@ -1,0 +1,5 @@
+dbpath = {{ sqlite_db_path }}
+query = SELECT domains.name || '/' || users.username || '/'
+        FROM users
+        JOIN domains ON users.domain_id=domains.id
+        WHERE users.username || '@' || domains.name='%s';

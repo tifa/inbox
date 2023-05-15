@@ -1,0 +1,8 @@
+---
+- hosts: localhost
+  become: yes
+  name: set up new domain
+  tasks:
+    - include_role:
+        name: mail
+        tasks_from: domain

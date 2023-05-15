@@ -1,0 +1,14 @@
+.DEFAULT_GOAL := help
+MAKEFLAGS += --warn-undefined-variables
+
+COL_WIDTH = 10
+FORMAT_YELLOW = 33
+FORMAT_BOLD_YELLOW = \e[1;$(FORMAT_YELLOW)m
+FORMAT_END = \e[0m
+FORMAT_UNDERLINE = \e[4m
+
+define usage
+@printf "Usage: make target\n\n"
+@printf "$(FORMAT_UNDERLINE)target$(FORMAT_END):\n"
+@grep -E "^[A-Za-z0-9_ -]*:.*#" $< | while read -r l; do printf "  $(FORMAT_BOLD_YELLOW)%-$(COL_WIDTH)s$(FORMAT_END)$$(echo $$l | cut -f2- -d'#')\n" $$(echo $$l | cut -f1 -d':'); done
+endef
