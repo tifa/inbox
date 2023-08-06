@@ -1,0 +1,107 @@
+digraph database {
+node [
+    fontsize = 11,
+    fontname = "SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,Courier New,Courier,monospace"
+]
+graph [
+    rankdir = LR,
+    overlap = false,
+    splines = true
+];
+
+"domains" [
+    label = <<table border="0" cellborder="1" cellspacing="0">
+                <tr><td bgcolor="lightgray" colspan="2">domains</td></tr>
+                <tr>
+                    <td>&nbsp;&amp;&nbsp;</td>
+                    <td align="left" port="id"><b>id</b> integer</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td align="left"><b>name</b> varchar(50)</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td align="left">description text</td>
+                </tr>
+            </table>>
+    shape = "none"
+]
+"users" [
+    label = <<table border="0" cellborder="1" cellspacing="0">
+                <tr><td bgcolor="lightgray" colspan="2">users</td></tr>
+                <tr>
+                    <td>&nbsp;&amp;&nbsp;</td>
+                    <td align="left"><b>id</b> integer</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td align="left"><b>username</b> varchar(50)</td>
+                </tr>
+                <tr>
+                    <td port="domain_id"></td>
+                    <td align="left"><b>domain_id</b> integer</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td align="left"><b>password</b> varchar(255)</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td align="left"><b>forward_to</b> varchar(255)</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td align="left">description text</td>
+                </tr>
+            </table>>
+    shape = "none"
+]
+"reject_senders" [
+    label = <<table border="0" cellborder="1" cellspacing="0">
+                <tr><td bgcolor="lightgray" colspan="2">reject_senders</td></tr>
+                <tr>
+                    <td>&nbsp;&amp;&nbsp;</td>
+                    <td align="left"><b>id</b> integer</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td align="left"><b>username</b> varchar(50)</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td align="left"><b>domain_name</b> varchar(50)</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td align="left">description text</td>
+                </tr>
+            </table>>
+    shape = "none"
+]
+"reject_recipients" [
+    label = <<table border="0" cellborder="1" cellspacing="0">
+                <tr><td bgcolor="lightgray" colspan="2">reject_recipients</td></tr>
+                <tr>
+                    <td>&nbsp;&amp;&nbsp;</td>
+                    <td align="left"><b>id</b> integer</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td align="left"><b>username</b> varchar(50)</td>
+                </tr>
+                <tr>
+                    <td port="domain_id"></td>
+                    <td align="left"><b>domain_id</b> integer</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td align="left">description text</td>
+                </tr>
+            </table>>
+    shape = "none"
+]
+
+"domains":id -> "users":domain_id;
+"domains":id -> "reject_recipients":domain_id;
+}
