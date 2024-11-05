@@ -1,4 +1,0 @@
-dbpath = {{ sqlite_db_path }}
-query = SELECT name
-        FROM domains
-        WHERE name='%s';

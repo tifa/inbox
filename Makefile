@@ -1,49 +1,72 @@
-include Make.defs
+.DEFAULT_GOAL := help
+
+ENV_FILE = .env
+
+ACTIVATE = . venv/bin/activate &&
+ANSIBLE = $(ACTIVATE) ansible-playbook
+
 include .env
+export
 
-.git/hooks/pre-commit: venv
-	$(ACTIVATE) pre-commit install
+COMPOSE = docker compose -f compose.yaml
+ifeq (${USE_PROXY},true)
+	COMPOSE += -f compose.proxy.yaml
+endif
+
+define usage
+	@printf "\nUsage: make <command>\n"
+	@grep -F -h "##" $(MAKEFILE_LIST) | grep -F -v grep -F | sed -e 's/\\$$//' | awk 'BEGIN {FS = ":*[[:alnum:] _]*##[[:space:]]*"}; \
+	{ \
+		if($$2 == "") \
+			pass; \
+		else if($$0 ~ /^#/) \
+			printf "\n%s\n", $$2; \
+		else if($$1 == "") \
+			printf "     %-20s%s\n", "", $$2; \
+		else \
+			printf "\n    \033[1;33m%-20s\033[0m %s\n", $$1, $$2; \
+	}'
+endef
+
+.git/hooks/pre-commit: .pre-commit-config.yaml
+	@$(ACTIVATE) pre-commit install --hook-type pre-commit
 	@touch $@
 
-venv: venv/touchfile
-venv/touchfile: requirements.txt
-	test -d venv || virtualenv venv
-	$(ACTIVATE) pip install -Ur requirements.txt
+venv/.touchfile: requirements-dev.txt
+	@test -d venv || python3 -m venv venv
+	@$(ACTIVATE) pip install -U uv && uv pip install -Ur $<
 	@touch $@
-
-setup: venv .git/hooks/pre-commit
+venv: .git/hooks/pre-commit venv/.touchfile
 
 .PHONY: help
-help: Makefile  # Print this message
-	$(call usage)
+help: Makefile  ## Print this message
+	@$(usage)
 
-.PHONY: build
-build: setup  # Build the Docker image
-	docker compose build prod
+## Mail Server
 
-.PHONY: dev
-dev:  # Enter dev mode
-	docker compose build dev
-	@echo "\nRun \`make\` to set up this server.\n"
-	docker compose -v run --rm dev
+.PHONY: provision
+provision: venv  ## Provision the mail server
+	@$(ANSIBLE) ./ansible/provision.yaml
 
-.PHONY: docs
-docs:  # Open docs
-	$(ACTIVATE) cd docs && make html && open _build/html/index.html
+## Development
+
+.PHONY: up
+up:  ## Start the mail container
+	@$(COMPOSE) up -d --build
+
+.PHONY: down
+down:  ## Stop the mail container
+	@$(COMPOSE) down --remove-orphans
+
+.PHONY: sh
+sh:  ## Start a shell in the mail container
+	@$(COMPOSE) exec inbox bash
 
 .PHONY: restart
-restart: stop start  # Restart the service
+restart: down up  ## Restart the mail container
 
-.PHONY: shell
-shell:  # Enter shell
-	docker compose exec prod bash
+## Development
 
-.PHONY: start
-start:  # Start the service
-	mkdir -p $(shell dirname $(SQLITE_DB_PATH)); touch $(SQLITE_DB_PATH)
-	docker compose up -d prod
-	docker compose exec prod make update
-
-.PHONY: stop
-stop:  # Stop the service
-	docker compose rm prod -fs
+.PHONY: check
+check: venv  ## Check the code
+	@$(ACTIVATE) pre-commit run --all-files

@@ -1,0 +1,28 @@
+---
+name: inbox
+
+services:
+  inbox:
+    container_name: ${MAILHOST:?}
+    build:
+      context: .
+      target: web
+    image: inbox
+    hostname: ${MAILHOST:?}
+    env_file:
+      - .env
+    ports:
+      - 80:8080
+    volumes:
+      - data:/data
+      - ./:/app
+
+  server:
+    image: ubuntu:20.04
+    labels:
+      ansible: true
+    volumes:
+      - ./:/app
+
+volumes:
+  data:

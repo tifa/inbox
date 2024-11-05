@@ -1,0 +1,9 @@
+-r requirements.txt
+
+mypy
+pre-commit
+pytest
+pytest-cov
+pytest-env
+pytest-sugar
+ruff

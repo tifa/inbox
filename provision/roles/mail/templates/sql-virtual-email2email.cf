@@ -1,9 +1,0 @@
-dbpath = {{ sqlite_db_path }}
-query = SELECT CASE WHEN users.username IS NULL
-                    THEN '@' || domains.name
-                    ELSE users.username || '@' || domains.name
-                    END
-        FROM users
-        JOIN domains ON users.domain_id=domains.id
-        WHERE users.username || '@' || domains.name='%s'
-          OR (users.username IS NULL AND domains.name=(SELECT substr('%s', instr('%s', '@')+1)));

@@ -1,0 +1,15 @@
+---
+- name: Check environment variables
+  fail:
+    msg: 'Environment variable {{ item }} must be set'
+  when: lookup('env', item) == ''
+  loop:
+    - ADMIN_EMAIL
+    - CERT_RESOLVER
+    - MAILHOST
+
+- name: Register environment variables
+  set_fact:
+    admin_email: '{{ lookup("env", "ADMIN_EMAIL") }}'
+    cert_resolver: '{{ lookup("env", "CERT_RESOLVER") }}'
+    mailhost: '{{ lookup("env", "MAILHOST") }}'

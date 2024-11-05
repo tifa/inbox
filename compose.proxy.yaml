@@ -1,0 +1,16 @@
+---
+services:
+  inbox:
+    labels:
+      traefik.enable: true
+      traefik.http.routers.inbox.rule: Host(`${MAILHOST:?}`)
+      traefik.http.routers.inbox.entrypoints: websecure
+      traefik.http.routers.inbox.tls.certresolver: ${CERT_RESOLVER:?}
+      traefik.http.services.inbox.loadbalancer.server.port: 8080
+    ports: !override []
+    networks:
+      - service
+
+networks:
+  service:
+    external: true

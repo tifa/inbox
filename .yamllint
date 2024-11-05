@@ -1,0 +1,11 @@
+---
+extends: default
+
+ignore:
+  - /.github/workflows
+  - compose.proxy.yaml
+
+rules:
+  line-length:
+    ignore:
+      - ansible

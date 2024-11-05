@@ -1,0 +1,8 @@
+---
+- name: provision
+  hosts: localhost
+  become: true
+
+  roles:
+    - config
+    - mail

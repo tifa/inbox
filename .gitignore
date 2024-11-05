@@ -1,7 +1,11 @@
-.DS_Store
-
+__pycache__
+/venv
 .env
-data/
-venv/
+.coverage
+.mypy_cache
+.nicegui
+.python-version
+.pytest_cache
+.ruff_cache
 
-docs/_build/
+/data

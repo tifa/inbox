@@ -1,0 +1,9 @@
+dbpath = {{ sqlite_db_path }}
+query = SELECT CASE WHEN email.username IS NULL
+                    THEN '@' || domain.name
+                    ELSE email.username || '@' || domain.name
+                    END
+        FROM email
+        JOIN domain ON email.domain=domain.id
+        WHERE email.username || '@' || domain.name='%s'
+          OR (email.username IS NULL AND domain.name=(SELECT substr('%s', instr('%s', '@')+1)));
