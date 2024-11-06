@@ -84,6 +84,7 @@ class RejectRecipient(BaseModel):
 
     class Meta:
         indexes = ((("username", "domain"), True),)
+        table_name = "reject_recipient"
 
 
 class RejectSender(BaseModel):
@@ -94,3 +95,4 @@ class RejectSender(BaseModel):
 
     class Meta:
         indexes = ((("account", "username", "domain_name"), True),)
+        table_name = "reject_sender"
