@@ -22,7 +22,7 @@ def test_list_emails(account):
         forward_to="email@example.com",
     )
 
-    with patch("admin.service.active_account", return_value=account):
+    with patch("inbox.service.admin.active_account", return_value=account):
         assert list_emails() == [email]
 
 
@@ -54,11 +54,11 @@ def test_list_emails_accounts(account, admin):
         password="password4", domain=domain_4, forward_to="email@example.org"
     )
 
-    with patch("admin.service.active_account", return_value=account_1):
+    with patch("inbox.service.admin.active_account", return_value=account_1):
         assert list_emails() == [email_3, email_1]
-    with patch("admin.service.active_account", return_value=account_2):
+    with patch("inbox.service.admin.active_account", return_value=account_2):
         assert list_emails() == [email_2]
-    with patch("admin.service.active_account", return_value=admin):
+    with patch("inbox.service.admin.active_account", return_value=admin):
         assert list_emails() == [email_4, email_3, email_2, email_1]
 
 
@@ -88,7 +88,7 @@ def test_upsert_email(account):
     ]
 
     for i, email_arg in enumerate(emails_args, start=1):
-        with patch("admin.service.active_account", return_value=account):
+        with patch("inbox.service.admin.active_account", return_value=account):
             upsert_email(domain_id=domain.id, **email_arg)
         email = Email.get(Email.id == email_arg.get("id", i))
         assert email.username == email_arg["username"]
@@ -105,7 +105,7 @@ def test_upsert_email_account(account):
     domain_1 = Domain.create(account=account_1, name="example.com")
 
     with (
-        patch("admin.service.active_account", return_value=account_2),
+        patch("inbox.service.admin.active_account", return_value=account_2),
         pytest.raises(UnauthorizedActionError),
     ):
         upsert_email(
@@ -124,7 +124,7 @@ def test_delete_email(account):
         domain=domain,
         forward_to="email@example.com",
     )
-    with patch("admin.service.active_account", return_value=account):
+    with patch("inbox.service.admin.active_account", return_value=account):
         assert delete_email(id=1)
 
     assert Email.get_or_none(Email.id == 1) is None
@@ -139,7 +139,7 @@ def test_delete_email_accounts(account):
     )
 
     with (
-        patch("admin.service.active_account", return_value=account_2),
+        patch("inbox.service.admin.active_account", return_value=account_2),
         pytest.raises(UnauthorizedActionError),
     ):
         delete_email(id=1)
@@ -153,7 +153,7 @@ def test_list_domains(account):
         password="password", domain=domain_2, forward_to="email@example.com"
     )
 
-    with patch("admin.service.active_account", return_value=account):
+    with patch("inbox.service.admin.active_account", return_value=account):
         assert list_domains() == [domain_2, domain_1]
 
     assert domain_1.emails == []
@@ -169,11 +169,11 @@ def test_list_domains_accounts(account, admin):
     domain_3 = Domain.create(account=account_1, name="example.org")
     domain_4 = Domain.create(account=admin, name="example.co")
 
-    with patch("admin.service.active_account", return_value=account_1):
+    with patch("inbox.service.admin.active_account", return_value=account_1):
         assert list_domains() == [domain_1, domain_3]
-    with patch("admin.service.active_account", return_value=account_2):
+    with patch("inbox.service.admin.active_account", return_value=account_2):
         assert list_domains() == [domain_2]
-    with patch("admin.service.active_account", return_value=admin):
+    with patch("inbox.service.admin.active_account", return_value=admin):
         assert list_domains() == [domain_4, domain_1, domain_2, domain_3]
 
 
@@ -195,7 +195,7 @@ def test_upsert_domain(account):
     ]
 
     for i, domain_arg in enumerate(domains_args, start=1):
-        with patch("admin.service.active_account", return_value=account):
+        with patch("inbox.service.admin.active_account", return_value=account):
             upsert_domain(**domain_arg)
         domain = Domain.get(Domain.id == domain_arg.get("id", i))
         assert domain.name == domain_arg["name"]
@@ -208,7 +208,7 @@ def test_delete_domain(account):
 
     Domain.create(account=account, name="example.com")
 
-    with patch("admin.service.active_account", return_value=account):
+    with patch("inbox.service.admin.active_account", return_value=account):
         assert delete_domain(id=1)
 
     assert Domain.get_or_none(Domain.id == 1) is None
@@ -220,7 +220,7 @@ def test_delete_domain(account):
 #     domain_1 = Domain.create(account=account_1, name="example.com")
 
 #     with (
-#         patch("admin.service.active_account", return_value=account_2),
+#         patch("inbox.service.admin.active_account", return_value=account_2),
 #         pytest.raises(UnauthorizedActionError),
 #     ):
 #         delete_domain(id=1)

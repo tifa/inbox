@@ -2,7 +2,7 @@
 omit = ["*/views/*", "*/tests/*"]
 
 [tool.pytest.ini_options]
-addopts = "-vvv --cov=admin --cov=scripts --cov-report=term-missing"
+addopts = "-vvv --cov=inbox --cov=scripts --cov-report=term-missing"
 env = ["SQLITE_DB=memory"]
 
 [tool.mypy]
