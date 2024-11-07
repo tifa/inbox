@@ -1,4 +1,4 @@
 driver = sqlite
 connect = {{ sqlite_db_path }}
 default_pass_scheme = SHA512-CRYPT
-password_query = SELECT * FROM (SELECT '%u' AS email, email.password FROM email JOIN domain ON email.domain = domain.id WHERE email.username IS NULL AND domain.name = (SELECT substr('%u', instr('%u', '@')+1)) UNION SELECT email.username || '@' || domain.name AS email, email.password FROM email JOIN domain ON email.domain = domain.id WHERE email.username || '@' || domain.name = '%u') AS TMP LIMIT 0,1;
+password_query = SELECT * FROM (SELECT '%u' AS email, email.password FROM email JOIN domain ON email.domain_id = domain.id WHERE email.username IS NULL AND domain.name = (SELECT substr('%u', instr('%u', '@')+1)) UNION SELECT email.username || '@' || domain.name AS email, email.password FROM email JOIN domain ON email.domain_id = domain.id WHERE email.username || '@' || domain.name = '%u') AS TMP LIMIT 0,1;

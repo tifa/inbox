@@ -1,5 +1,5 @@
 dbpath = {{ sqlite_db_path }}
 query = SELECT domain.name || '/' || email.username || '/'
         FROM email
-        JOIN domain ON email.domain=domain.id
+        JOIN domain ON email.domain_id=domain.id
         WHERE email.username || '@' || domain.name='%s';

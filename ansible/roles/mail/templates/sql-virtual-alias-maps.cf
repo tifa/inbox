@@ -1,6 +1,6 @@
 dbpath = {{ sqlite_db_path }}
 query = SELECT forward_to
         FROM email
-        JOIN domain ON email.domain=domain.id
+        JOIN domain ON email.domain_id=domain.id
         WHERE (email.forward_to IS NOT NULL AND email.username || '@' || domain.name='%s')
            OR (email.username IS NULL AND domain.name=(SELECT substr('%s', instr('%s', '@')+1)));
