@@ -212,9 +212,7 @@ def email():
                     </q-popup-edit>
                 </template>
                 <template v-else>
-                    """
-        + MASKED_PASSWORD
-        + r"""
+                    <q-icon name="key" />
                 </template>
             </q-td>
             <q-td key="domain" :props="props">
