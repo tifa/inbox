@@ -15,6 +15,7 @@
     - opendkim
     - opendkim-tools
     - postfix
+    - postfix-sqlite
     - python3-certbot-apache
     - sqlite3
 
@@ -131,10 +132,10 @@
 - name: Set prod Postfix main cert configs
   command: postconf -e '{{ item.key }} = {{ item.value }}'
   with_items:
-    - {key: 'smtp_tls_cert_file', value: '/etc/letsencrypt/live/{{ mailhost }}/fullchain.pem'}
-    - {key: 'smtpd_tls_cert_file', value: '/etc/letsencrypt/live/{{ mailhost }}/fullchain.pem'}
-    - {key: 'smtpd_tls_key_file', value: '/etc/letsencrypt/live/{{ mailhost }}/privkey.pem'}
-    - {key: 'smtp_tls_key_file', value: '/etc/letsencrypt/live/{{ mailhost }}/privkey.pem'}
+    - {key: 'smtp_tls_cert_file', value: '/srv/www/inbox/certs/fullchain.pem'}
+    - {key: 'smtpd_tls_cert_file', value: '/srv/www/inbox/certs/fullchain.pem'}
+    - {key: 'smtpd_tls_key_file', value: '/srv/www/inbox/certs/privkey.pem'}
+    - {key: 'smtp_tls_key_file', value: '/srv/www/inbox/certs/privkey.pem'}
   when:
     - cert_resolver == 'letsencrypt'
 
