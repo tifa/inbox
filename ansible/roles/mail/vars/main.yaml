@@ -1,3 +1,2 @@
 ---
-db_dir: /data
-sqlite_db_path: '{{ db_dir }}/db.sqlite'
+sqlite_db_path: '{{ ansible_env.PWD }}/../data/db.sqlite'

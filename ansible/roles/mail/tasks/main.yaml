@@ -308,28 +308,6 @@
     state: touch
 
 # ----------------------------------------
-# Database
-
-- name: Copy schema file
-  copy:
-    src: roles/mail/files/schema.sql
-    dest: /tmp/schema.sql
-    backup: true
-
-- name: 'Create database directory'
-  file:
-    path: '{{ db_dir }}'
-    state: directory
-
-- name: Create tables in sqlite
-  shell: sqlite3 {{ sqlite_db_path }} < /tmp/schema.sql
-
-- name: Delete schema file
-  file:
-    path: /tmp/schema.sql
-    state: absent
-
-# ----------------------------------------
 # Restart services
 
 - name: Restart Postfix

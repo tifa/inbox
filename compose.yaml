@@ -14,7 +14,7 @@ services:
     ports:
       - 80:8080
     volumes:
-      - data:/data
+      - ./data:/data
       - ./:/app
 
   server:
@@ -23,6 +23,3 @@ services:
       ansible: true
     volumes:
       - ./:/app
-
-volumes:
-  data:
