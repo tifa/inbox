@@ -11,6 +11,7 @@
     - certbot
     - dnsutils  # for `dig`
     - dovecot-core
+    - dovecot-sqlite
     - fail2ban
     - opendkim
     - opendkim-tools
