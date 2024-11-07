@@ -1,5 +1,4 @@
-import crypt
-import os
+from passlib.hash import sha512_crypt
 
 from inbox.exception import UnauthorizedActionError
 from inbox.model import Domain, Email, EmailStatus, RejectSender
@@ -7,8 +6,7 @@ from inbox.service.auth import active_account
 
 
 def encrypt(string: str) -> str:
-    salt = f"$6${os.urandom(16).hex()}"
-    return crypt.crypt(string, salt)
+    return sha512_crypt.hash(string)
 
 
 def list_emails() -> list[Email]:

@@ -1,4 +1,5 @@
 ansible
 argon2-cffi
 nicegui
+passlib
 peewee
