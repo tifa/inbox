@@ -1,3 +1,0 @@
----
-- name: disable default site
-  shell: a2dissite 000-default.conf
