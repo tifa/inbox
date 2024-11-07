@@ -11,6 +11,21 @@ services:
     networks:
       - service
 
+  cert-sync:
+    image: alpine:latest
+    depends_on:
+      - inbox
+    entrypoint: ['sh', '/app/certs/sync.sh', '${MAILHOST:?}']
+    volumes:
+      - service_certs:/app/service-certs
+      - ./cert-sync:/app/certs
+    networks:
+      - service
+
+volumes:
+  service_certs:
+    external: true
+
 networks:
   service:
     external: true
