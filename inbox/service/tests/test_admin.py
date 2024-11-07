@@ -3,7 +3,7 @@ from unittest.mock import patch
 import pytest
 
 from inbox.exception import UnauthorizedActionError
-from inbox.model import Domain, Email
+from inbox.model import Domain, Email, EmailStatus
 from inbox.service.admin import (
     delete_domain,
     delete_email,
@@ -70,12 +70,14 @@ def test_upsert_email(account):
             "username": "username1",
             "password": "password1",
             "forward_to": "email1@example.com",
+            "status": EmailStatus.ACTIVE,
             "description": "description1",
         },
         {
             "username": "username2",
             "password": "password2",
             "forward_to": "email2@example.com",
+            "status": EmailStatus.ACTIVE,
             "description": "description2",
         },
         {
@@ -83,6 +85,7 @@ def test_upsert_email(account):
             "username": "username3",
             "password": "password1",
             "forward_to": "email1@example.com",
+            "status": EmailStatus.BLOCK,
             "description": "description1",
         },
     ]
@@ -96,6 +99,7 @@ def test_upsert_email(account):
         # TODO: Fix password encryption
         assert email.domain == domain
         assert email.forward_to == email_arg["forward_to"]
+        assert email.status == email_arg["status"]
         assert email.description == email_arg["description"]
 
 

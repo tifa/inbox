@@ -98,7 +98,6 @@ def domain():
     """)
 
     table = ui.table(columns=columns, rows=rows, row_key="id").classes("w-full")
-    # fmt: off
     table.add_slot(
         "header",
         r"""
@@ -171,7 +170,6 @@ def domain():
         </q-tr>
         """,
     )
-    # fmt: on
     table.on("update_ui_display", update_ui_display)
     table.on("delete", delete)
     table.on("save", save)

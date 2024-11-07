@@ -1,6 +1,7 @@
 from nicegui import ui
 
 from inbox.views.auth import logout
+from inbox.views.reject_sender import reject_sender
 from inbox.views.domain import domain
 from inbox.views.email import email
 
@@ -11,8 +12,7 @@ def header() -> None:
         nav = [
             ("Emails", "/emails", "alternate_email"),
             ("Domains", "/domains", "dns"),
-            ("Deny From", "/deny_from", "block"),
-            ("Deny To", "/deny_to", "cancel_schedule_send"),
+            ("Deny From", "/deny-from", "block"),
         ]
         with ui.row().classes("max-sm:hidden"):
             for title, path, icon in nav:
@@ -30,22 +30,18 @@ def header() -> None:
 
 @ui.page("/")
 @ui.page("/emails")
-def main() -> None:
+def main_page() -> None:
     header()
     email()
 
 
 @ui.page("/domains")
-def domains() -> None:
+def domains_page() -> None:
     header()
     domain()
 
 
-@ui.page("/deny_from")
-def deny_from() -> None:
+@ui.page("/deny-from")
+def deny_from_page() -> None:
     header()
-
-
-@ui.page("/deny_to")
-def deny_to() -> None:
-    header()
+    reject_sender()

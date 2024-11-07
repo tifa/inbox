@@ -2,7 +2,7 @@ import crypt
 import os
 
 from inbox.exception import UnauthorizedActionError
-from inbox.model import Domain, Email
+from inbox.model import Domain, Email, EmailStatus, RejectSender
 from inbox.service.auth import active_account
 
 
@@ -19,6 +19,7 @@ def list_emails() -> list[Email]:
             Email.password,
             Email.domain,
             Email.forward_to,
+            Email.status,
             Email.description,
         )
         .join(Domain)
@@ -36,10 +37,12 @@ def upsert_email(
     password: str,
     domain_id: int,
     forward_to: str,
+    status: EmailStatus,
     id: int | None = None,
     username: str | None = None,
     description: str | None = None,
 ) -> None:
+    print("ABC")
     domain = Domain.get_or_none(Domain.id == domain_id)
     if domain.account != active_account():
         raise UnauthorizedActionError(
@@ -51,6 +54,7 @@ def upsert_email(
         "password": encrypt(password),
         "domain": domain,
         "forward_to": forward_to,
+        "status": status,
         "description": description,
     }
     if email is None:
@@ -110,5 +114,54 @@ def delete_domain(id: int) -> bool:
                 "Domain does not belong to this account"
             )
         domain.delete_instance()
+        return True
+    return False
+
+
+def list_reject_senders() -> list[RejectSender]:
+    reject_senders = RejectSender.select(
+        RejectSender.id,
+        RejectSender.username,
+        RejectSender.domain_name,
+        RejectSender.description,
+    ).order_by(RejectSender.domain_name, RejectSender.username)
+    account = active_account()
+    if not account:
+        raise UnauthorizedActionError("No account is active")
+    if not account.is_admin:
+        reject_senders = reject_senders.where(
+            RejectSender.account == active_account()
+        )
+    return list(reject_senders)
+
+
+def upsert_reject_sender(
+    username: str,
+    domain_name: str,
+    description: str | None = None,
+    id: int | None = None,
+) -> None:
+    sender = RejectSender.get_or_none(RejectSender.id == id)
+    kwargs = {
+        "account": active_account(),
+        "username": username,
+        "domain_name": domain_name,
+        "description": description,
+    }
+    if sender is None:
+        sender = RejectSender.create(**kwargs)
+    else:
+        sender.update_from_dict(**kwargs)
+        sender.save()
+
+
+def delete_reject_sender(id: int) -> bool:
+    sender = RejectSender.get_or_none(RejectSender.id == id)
+    if sender is not None:
+        if sender.account != active_account():
+            raise UnauthorizedActionError(
+                "Rejected sender does not belong to this account"
+            )
+        sender.delete_instance()
         return True
     return False

@@ -2,7 +2,7 @@ import pytest
 from peewee import IntegrityError
 
 from inbox.exception import ValidationError
-from inbox.model import Domain, Email, RejectRecipient, RejectSender
+from inbox.model import Domain, Email, RejectSender
 
 
 def test_domain(account):
@@ -92,50 +92,6 @@ def test_email_unique(account):
     args["forward_to"] = "email@example.net"
     with pytest.raises(IntegrityError):
         Email.create(**args)
-
-
-def test_reject_recipient(account):
-    username = "user"
-    description = "description"
-
-    domain = Domain.create(account=account, name="example.com")
-    reject_recipient = RejectRecipient.create(
-        username=username,
-        domain=domain,
-        description=description,
-    )
-    assert reject_recipient.id == 1
-    assert reject_recipient.username == username
-    assert reject_recipient.domain == domain
-    assert reject_recipient.description == description
-
-
-@pytest.mark.parametrize(
-    "missing_column",
-    ["username", "domain"],
-)
-def test_reject_recipient_missing(account, missing_column):
-    domain = Domain.create(account=account, name="example.com")
-    args = {
-        "username": "user",
-        "domain": domain,
-    }
-
-    with pytest.raises(IntegrityError):
-        del args[missing_column]
-        RejectRecipient.create(**args)
-
-
-def test_reject_recipient_unique(account):
-    domain = Domain.create(account=account, name="example.com")
-    args = {
-        "username": "user",
-        "domain": domain,
-    }
-    RejectRecipient.create(**args)
-
-    with pytest.raises(IntegrityError):
-        RejectRecipient.create(**args)
 
 
 def test_reject_sender(account):
