@@ -9,9 +9,6 @@ include .env
 export
 
 COMPOSE = docker compose -f compose.yaml
-ifeq (${USE_PROXY},true)
-	COMPOSE += -f compose.proxy.yaml
-endif
 
 define usage
 	@printf "\nUsage: make <command>\n"
