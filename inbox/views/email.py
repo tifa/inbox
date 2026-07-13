@@ -91,7 +91,10 @@ def email():
             "password": "",
             "domain": "",
             "forward_to": "",
-            "status": EmailStatus.active.name,
+            "status": {
+                "label": EmailStatus.ACTIVE.name,
+                "value": EmailStatus.ACTIVE.value,
+            },
             "description": "",
             "is_editing": True,
             "password_visible": False,
