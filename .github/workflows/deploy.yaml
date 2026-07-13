@@ -1,17 +1,37 @@
 ---
-name: Deploy to production
+name: Deploy to Mail VPS
 
-concurrency: production
+concurrency: mail
 
 "on":
   push:
     branches:
-      - main
+      - mail
 
 jobs:
-  deploy:
+  test:
     runs-on: ubuntu-latest
-    environment: production
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: |
+          python3 -m venv venv
+          . venv/bin/activate && pip install uv
+          . venv/bin/activate && uv pip install -r requirements-dev.txt
+
+      - name: Run tests
+        run: |
+          . venv/bin/activate && pytest
+
+  deploy:
+    needs: test
+    if: github.ref == 'refs/heads/mail' && github.event_name == 'push'
+
+    runs-on: ubuntu-latest
+    environment: mail
 
     steps:
       - name: Checkout repository
