@@ -40,7 +40,6 @@ def upsert_email(
     username: str | None = None,
     description: str | None = None,
 ) -> None:
-    print("ABC")
     domain = Domain.get_or_none(Domain.id == domain_id)
     if domain.account != active_account():
         raise UnauthorizedActionError(

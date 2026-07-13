@@ -84,7 +84,7 @@ def email():
     email_status_options_json = json.dumps(email_status_options)
 
     def add_ui_row() -> None:
-        new_id = max((dx["id"] for dx in rows), default=-1) + 1
+        new_id = max((dx["id"] for dx in table.rows), default=-1) + 1
         row = {
             "id": new_id,
             "username": "",
@@ -96,13 +96,13 @@ def email():
             "is_editing": True,
             "password_visible": False,
         }
-        rows.append(row)
+        table.rows.append(row)
 
         notify_success("Created row", str(row))
         table.update()
 
     def update_ui_display(e: events.GenericEventArguments) -> None:
-        for row in rows:
+        for row in table.rows:
             if row["id"] == e.args["id"]:
                 row.update(e.args)
                 log.debug(f"Updated UI display: {row}")
@@ -110,19 +110,25 @@ def email():
         table.update()
 
     def delete(e: events.GenericEventArguments) -> None:
-        rows[:] = [row for row in rows if row["id"] != e.args["id"]]
+        table.rows[:] = [row for row in table.rows if row["id"] != e.args["id"]]
         try:
-            delete_email(e.args["id"])
+            deleted = delete_email(e.args["id"])
         except Exception as ex:
             notify_error("Error deleting row", str(ex))
         else:
-            notify_success("Deleted row", str(e))
+            if deleted:
+                notify_success("Deleted row", str(e))
+            else:
+                notify_error("Row not found, nothing was deleted", str(e))
             table.update()
 
     def save(e: events.GenericEventArguments):
         try:
-            for row in rows:
+            for row in table.rows:
                 if row["id"] == e.args["id"]:
+                    if not isinstance(row["domain"], dict):
+                        notify_error("Please choose a domain before saving")
+                        return
                     row["is_editing"] = False
                     upsert_email(
                         id=row["id"],
@@ -142,7 +148,7 @@ def email():
             table.update()
 
     def edit(e: events.GenericEventArguments):
-        for row in rows:
+        for row in table.rows:
             if row["id"] == e.args["id"]:
                 row["is_editing"] = True
                 break
