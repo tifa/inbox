@@ -1,7 +1,7 @@
 __pycache__
 /venv
 .env
-.coverage
+.coverage*
 .mypy_cache
 .nicegui
 .python-version

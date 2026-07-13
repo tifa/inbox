@@ -66,8 +66,8 @@ class Domain(BaseModel):
 
 
 class EmailStatus(IntEnum):
-    active = 0
-    blocked = 1
+    ACTIVE = 0
+    BLOCKED = 1
 
 
 class EmailStatusField(SmallIntegerField):
@@ -86,7 +86,7 @@ class Email(BaseModel):
     password = CharField(max_length=255)
     forward_to = CharField(max_length=255)
     description = TextField(null=True)
-    status = EmailStatusField(default=EmailStatus.active)
+    status = EmailStatusField(default=EmailStatus.ACTIVE)
 
     class Meta:
         indexes = ((("username", "domain"), True),)

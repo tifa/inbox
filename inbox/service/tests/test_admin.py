@@ -85,7 +85,7 @@ def test_upsert_email(account):
             "username": "username3",
             "password": "password1",
             "forward_to": "email1@example.com",
-            "status": EmailStatus.BLOCK,
+            "status": EmailStatus.BLOCKED,
             "description": "description1",
         },
     ]

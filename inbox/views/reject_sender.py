@@ -93,9 +93,9 @@ def reject_sender():
                     )
                     break
         except Exception as e:
-            notify_error("Error saving row", str(e))
+            notify_error("Error saving rejected sender", str(e))
         else:
-            notify_success("Saved row", str(row))
+            notify_success("Saved rejected sender", str(row))
             table.update()
 
     def edit(e: events.GenericEventArguments):

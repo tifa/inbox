@@ -10,7 +10,7 @@ log.setLevel(logging.DEBUG)
 def notify_error(message: str, debug: str | None = None) -> None:
     ui.notify(message, color="negative")
     if debug:
-        log.error(f"{message}: {debug}")
+        log.error(f"{message}: {debug}", exc_info=True)
 
 
 def notify_success(message: str, debug: str | None = None) -> None:

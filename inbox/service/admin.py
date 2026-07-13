@@ -35,7 +35,7 @@ def upsert_email(
     password: str,
     domain_id: int,
     forward_to: str,
-    status: EmailStatus,
+    status: EmailStatus | None = None,
     id: int | None = None,
     username: str | None = None,
     description: str | None = None,
@@ -51,9 +51,10 @@ def upsert_email(
         "password": encrypt(password),
         "domain": domain,
         "forward_to": forward_to,
-        "status": status,
         "description": description,
     }
+    if status:
+        kwargs["status"] = status
     if email is None:
         email = Email.create(**kwargs)
     else:

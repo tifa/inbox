@@ -35,7 +35,6 @@ RUN apt-get update \
         python3-pip \
     && rm -rf /var/lib/apt/lists/*
 
-COPY ./ /app
 COPY ./inbox/.bashrc /root/.bashrc
 
 WORKDIR /app

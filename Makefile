@@ -34,11 +34,10 @@ endef
 		@touch $@; \
 	fi
 
-venv/.touchfile: requirements-dev.txt
+venv: requirements-dev.txt .git/hooks/pre-commit
 	@test -d venv || python3 -m venv venv
 	@$(ACTIVATE) pip install -U uv && uv pip install -Ur $<
-	@touch $@
-venv: .git/hooks/pre-commit venv/.touchfile
+	@touch venv
 
 .PHONY: help
 help: Makefile  ## Print this message
@@ -46,18 +45,22 @@ help: Makefile  ## Print this message
 
 ## Mail Server
 
+.PHONY: server
+server: venv  ## Bash into the mail server
+	@$(COMPOSE) exec server bash
+
 .PHONY: provision
 provision: venv  ## Provision the mail server
 	@$(ANSIBLE) ./ansible/provision.yaml
 
 ## Development
 
-.PHONY: up
-up:  ## Start the mail container
+.PHONY: start
+start:  ## Start the mail container
 	@$(COMPOSE) up -d --build
 
-.PHONY: down
-down:  ## Stop the mail container
+.PHONY: stop
+stop:  ## Stop the mail container
 	@$(COMPOSE) down --remove-orphans
 
 .PHONY: sh
@@ -65,10 +68,12 @@ sh:  ## Start a shell in the mail container
 	@$(COMPOSE) exec inbox bash
 
 .PHONY: restart
-restart: down up  ## Restart the mail container
-
-## Development
+restart: stop start  ## Restart the mail container
 
 .PHONY: check
 check: venv  ## Check the code
 	@$(ACTIVATE) pre-commit run --all-files
+
+.PHONY: test
+test: venv  ## Run tests
+	@$(ACTIVATE) pytest

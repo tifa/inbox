@@ -6,8 +6,7 @@ A mail server that forwards and sends emails through virtual aliases.
 - Multiple domains
 - Block emails from unwanted senders
 - Block incoming emails to compromised aliases
-- Generate daily report summaries of mail transfer activity
-- Powered by [Postfix] and [Dovecot]
+- Powered by [Postfix], [Dovecot], [SQLite], [NiceGUI], [Peewee], [Docker]
 
 ## Setup
 
@@ -16,6 +15,7 @@ A mail server that forwards and sends emails through virtual aliases.
 - Ubuntu instance
 - Open outgoing port 25
 - Reverse DNS
+- Python 3.10+
 
 Set up the new instance using [server] and create a reverse proxy and set up
 certificates using [service].
@@ -39,10 +39,21 @@ and fail2ban.
 make provision
 ```
 
+## Admin UI
+
+Bring up the admin UI.
+
+```sh
+make ui
+```
 
 <!-- Links -->
+[Docker]: https://docker.com
 [Dovecot]: https://dovecot.org
+[NiceGUI]: https://nicegui.io
+[Peewee]: https://github.com/coleifer/peewee
 [Postfix]: https://postfix.org
+[SQLite]: https:/sqlite.org
 
 [server]: https://github.com/tifa/server
 [service]: https://github.com/tifa/service
