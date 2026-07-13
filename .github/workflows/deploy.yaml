@@ -6,6 +6,7 @@ concurrency: mail
 "on":
   push:
     branches:
+      - main
       - mail
 
 jobs:
